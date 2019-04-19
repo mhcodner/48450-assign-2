@@ -74,19 +74,19 @@ int main(int argc, char const *argv[])
   // Create Threads
   if(err = pthread_create(&(tid[0]), &attr, &ThreadA, (void*)(&params)))
   {
-	  perror("Error creating thread A");
+    perror("Error creating thread A");
     exit(-1);
   }
   
   if(err = pthread_create(&(tid[1]), &attr, &ThreadB, (void*)(&params)))
   {
-	  perror("Error creating thread B");
+    perror("Error creating thread B");
     exit(-1);
   }
 
   if(err = pthread_create(&(tid[2]), &attr, &ThreadC, (void*)(&params)))
   {
-	  perror("Error creating thread C");
+    perror("Error creating thread C");
     exit(-1);
   }
  
