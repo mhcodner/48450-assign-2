@@ -15,7 +15,6 @@
 #include  <semaphore.h>
 #include  <sys/time.h>
 
-#define BUFFER_SIZE 1024
 #define END_OF_HEADER "end_header"
 
 /* --- Structs --- */
@@ -62,18 +61,38 @@ int main(int argc, char const *argv[])
   initializeData(&params);
   pthread_attr_init(&attr);
 
+  if(pipe(params.pipeFile) < 0)
+  {
+    perror("Pipe error");
+    exit(-1);
+  }
+
   // Create Threads
   if(err = pthread_create(&(tid[0]), &attr, &ThreadA, (void*)(&params)))
   {
-	  perror("Error creating threads: ");
-      exit(-1);
+	  perror("Error creating thread A");
+    exit(-1);
   }
-  //TODO: add your code
- 
+  
+  if(err = pthread_create(&(tid[1]), &attr, &ThreadB, (void*)(&params)))
+  {
+	  perror("Error creating thread B");
+    exit(-1);
+  }
 
+  if(err = pthread_create(&(tid[2]), &attr, &ThreadC, (void*)(&params)))
+  {
+	  perror("Error creating thread C");
+    exit(-1);
+  }
+ 
   // Wait on threads to finish
-  pthread_join(tid[0], NULL);
-  //TODO: add your code
+  if(pthread_join(tid[0], NULL) != 0)
+    printf("Issue joining Thread A\n");
+  if(pthread_join(tid[1], NULL) != 0)
+    printf("Issue joining Thread B\n");
+  if(pthread_join(tid[2], NULL) != 0)
+    printf("Issue joining Thread C\n");
 
   return 0;
 }
