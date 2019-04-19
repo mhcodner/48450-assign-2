@@ -15,6 +15,7 @@
 #include  <semaphore.h>
 #include  <sys/time.h>
 
+#define MESSAGE_SIZE 255
 #define END_OF_HEADER "end_header"
 
 /* --- Structs --- */
@@ -22,7 +23,9 @@
 typedef struct ThreadParams {
   int pipeFile[2];
   sem_t sem_read, sem_justify, sem_write;
-  char message[255];
+  char message[MESSAGE_SIZE];
+  char * srcFile;
+  char * dataFile;
   pthread_mutex_t lock;
 } ThreadParams;
 
@@ -50,8 +53,6 @@ int main(int argc, char const *argv[])
     exit(-1);
   }
 
-  struct timeval t1, t2;
-  gettimeofday(&t1, NULL);  // Start Timer
   int err;
   pthread_t tid[3];
   pthread_attr_t attr;
@@ -66,6 +67,9 @@ int main(int argc, char const *argv[])
     perror("Pipe error");
     exit(-1);
   }
+
+  params.srcFile = argv[2];
+  params.dataFile = argv[1];
 
   // Create Threads
   if(err = pthread_create(&(tid[0]), &attr, &ThreadA, (void*)(&params)))
@@ -121,18 +125,68 @@ void initializeData(ThreadParams *params)
 
 void* ThreadA(void *params)
 {
-  //TODO: add your code
+  ThreadParams *parameters = params;
+  char line[MESSAGE_SIZE];
+    
+  FILE* srcFile = fopen(parameters->srcFile, "r");
+  if(!srcFile)
+  {
+    perror("Invalid File");
+    exit(-1);
+  }
   
+  while(!sem_wait(&parameters->sem_read) && fgets(line, MESSAGE_SIZE, srcFile) != NULL)
+  {
+    write(parameters->pipeFile[1], line, strlen(line) + 1); // Write into the pipe
+    sem_post(&parameters->sem_justify);
+  }
+
+  /* Close pipe and FILE* */
+  close(parameters->pipeFile[1]);
+  fclose(srcFile);
 }
 
 void* ThreadB(void *params)
 {
-  //TODO: add your code
+  ThreadParams *parameters = params;
   
+  while(!sem_wait(&parameters->sem_justify))
+  {
+    read(parameters->pipeFile[0], parameters->message, MESSAGE_SIZE); // Read from the pipe
+    sem_post(&parameters->sem_write);
+  }
+    
+  close(parameters->pipeFile[0]); // Close pipe
 }
 
 void* ThreadC(void *params)
 {
-  //TODO: add your code
+  ThreadParams *parameters = params;
 
+  FILE* dataFile = fopen(parameters->dataFile, "w");
+  if(!dataFile)
+  {
+    perror("Invalid File");
+    exit(-1);
+  }
+
+  char line[MESSAGE_SIZE];
+  int eoh_flag = 0; // End of header flag
+  
+  while(!sem_wait(&parameters->sem_write))
+  {
+    if(eoh_flag)
+    {
+      /* Put the contents of the shared buffer into file */
+      fputs(parameters->message, dataFile);
+    }
+    else if(strstr(parameters->message, END_OF_HEADER)) // Check for the end of header
+    {
+      eoh_flag = 1;
+    }
+
+    sem_post(&parameters->sem_read);
+  }
+  
+  fclose(dataFile); // Close FILE*
 }
