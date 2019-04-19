@@ -2,6 +2,7 @@
   To compile prog_1 ensure that gcc is installed and run the following command:
   gcc prog_1.c -o prog_1 -lpthread -lrt -Wall
 
+  Note: this will not compile on MacOS as lrt is not available
 */
 #include  <pthread.h>
 #include  <stdlib.h>
@@ -13,6 +14,9 @@
 #include  <sys/stat.h>
 #include  <semaphore.h>
 #include  <sys/time.h>
+
+#define BUFFER_SIZE 1024
+#define END_OF_HEADER "end_header"
 
 /* --- Structs --- */
 
@@ -38,7 +42,15 @@ void* ThreadB(void *params);
 void* ThreadC(void *params);
 
 /* --- Main Code --- */
-int main(int argc, char const *argv[]) {
+int main(int argc, char const *argv[])
+{
+  if(argc != 3)
+  {
+    printf("Please provide 2 arguments: a data file and a a source file\n");
+    printf("e.g. %s data.txt src.txt\n", argv[0]);
+    exit(-1);
+  }
+
   struct timeval t1, t2;
   gettimeofday(&t1, NULL);  // Start Timer
   int err;
@@ -66,25 +78,42 @@ int main(int argc, char const *argv[]) {
   return 0;
 }
 
-void initializeData(ThreadParams *params) {
+void initializeData(ThreadParams *params)
+{
   // Initialize Sempahores
-  sem_init(&(params->sem_read), 0, 1);
-  //TODO: add your code
-
-  return;
+  if(sem_init(&(params->sem_read), 0, 1))
+  {
+    perror("Error initializing read semaphore.");
+    exit(-1);
+  }
+  
+  if(sem_init(&(params->sem_justify), 0, 0))
+  {
+    perror("Error initializing justify semaphore.");
+    exit(-1);
+  }
+  
+  if(sem_init(&(params->sem_write), 0, 0))
+  {
+    perror("Error initializing write semaphore.");
+    exit(-1);
+  }
 }
 
-void* ThreadA(void *params) {
+void* ThreadA(void *params)
+{
   //TODO: add your code
   
 }
 
-void* ThreadB(void *params) {
+void* ThreadB(void *params)
+{
   //TODO: add your code
   
 }
 
-void* ThreadC(void *params) {
+void* ThreadC(void *params)
+{
   //TODO: add your code
-  
+
 }
