@@ -143,7 +143,7 @@ void* ThreadA(void *params)
   /* Close pipe and FILE* */
   close(parameters->pipeFile[1]);
   fclose(srcFile);
-  return;
+  return params;
 }
 
 void* ThreadB(void *params)
@@ -157,7 +157,7 @@ void* ThreadB(void *params)
   }
     
   close(parameters->pipeFile[0]); // Close pipe
-  return;
+  return params;
 }
 
 void* ThreadC(void *params)
@@ -189,5 +189,5 @@ void* ThreadC(void *params)
   }
   
   fclose(dataFile); // Close FILE*
-  return;
+  return params;
 }
