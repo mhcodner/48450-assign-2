@@ -13,7 +13,6 @@
 #include  <string.h>
 #include  <sys/stat.h>
 #include  <semaphore.h>
-#include  <sys/time.h>
 
 #define MESSAGE_SIZE 255
 #define END_OF_HEADER "end_header"
@@ -103,7 +102,7 @@ int main(int argc, char const *argv[])
 
 void initializeData(ThreadParams *params)
 {
-  // Initialize Sempahores
+  // Initialize Semaphores
   if(sem_init(&(params->sem_read), 0, 1))
   {
     perror("Error initializing read semaphore.");
@@ -144,6 +143,7 @@ void* ThreadA(void *params)
   /* Close pipe and FILE* */
   close(parameters->pipeFile[1]);
   fclose(srcFile);
+  return;
 }
 
 void* ThreadB(void *params)
@@ -157,6 +157,7 @@ void* ThreadB(void *params)
   }
     
   close(parameters->pipeFile[0]); // Close pipe
+  return;
 }
 
 void* ThreadC(void *params)
@@ -170,7 +171,6 @@ void* ThreadC(void *params)
     exit(-1);
   }
 
-  char line[MESSAGE_SIZE];
   int eoh_flag = 0; // End of header flag
   
   while(!sem_wait(&parameters->sem_write))
@@ -189,4 +189,5 @@ void* ThreadC(void *params)
   }
   
   fclose(dataFile); // Close FILE*
+  return;
 }
