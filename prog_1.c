@@ -23,8 +23,8 @@ typedef struct ThreadParams {
   int pipeFile[2];
   sem_t sem_read, sem_justify, sem_write;
   char message[MESSAGE_SIZE];
-  char * srcFile;
-  char * dataFile;
+  const char * srcFile;
+  const char * dataFile;
   pthread_mutex_t lock;
 } ThreadParams;
 
