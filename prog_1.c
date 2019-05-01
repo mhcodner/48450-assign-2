@@ -13,8 +13,9 @@
 #include  <string.h>
 #include  <sys/stat.h>
 #include  <semaphore.h>
+#include  <errno.h>
 
-#define MESSAGE_SIZE 255
+#define MESSAGE_SIZE 1024
 #define END_OF_HEADER "end_header"
 
 /* --- Structs --- */
@@ -43,6 +44,9 @@ void* ThreadB(void *params);
 void* ThreadC(void *params);
 
 /* --- Main Code --- */
+
+pthread_t tid[3];
+
 int main(int argc, char const *argv[])
 {
   if(argc != 3)
@@ -53,7 +57,7 @@ int main(int argc, char const *argv[])
   }
 
   int err;
-  pthread_t tid[3];
+  
   pthread_attr_t attr;
   ThreadParams params;
 
@@ -130,7 +134,7 @@ void* ThreadA(void *params)
   FILE* srcFile = fopen(parameters->srcFile, "r");
   if(!srcFile)
   {
-    perror("Invalid File");
+    fprintf(stderr, "Invalid src file %s: %s\n", parameters->srcFile, strerror(errno));
     exit(-1);
   }
   
@@ -143,6 +147,12 @@ void* ThreadA(void *params)
   /* Close pipe and FILE* */
   close(parameters->pipeFile[1]);
   fclose(srcFile);
+
+  /* Cancel the execution of threads */
+  pthread_cancel(tid[0]);
+  pthread_cancel(tid[1]);
+  pthread_cancel(tid[2]);
+
   return params;
 }
 
@@ -167,7 +177,7 @@ void* ThreadC(void *params)
   FILE* dataFile = fopen(parameters->dataFile, "w");
   if(!dataFile)
   {
-    perror("Invalid File");
+    fprintf(stderr, "Invalid data file %s: %s\n", parameters->dataFile, strerror(errno));
     exit(-1);
   }
 
