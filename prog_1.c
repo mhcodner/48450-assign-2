@@ -26,7 +26,6 @@ typedef struct ThreadParams {
   char message[MESSAGE_SIZE];
   const char * srcFile;
   const char * dataFile;
-  pthread_mutex_t lock;
 } ThreadParams;
 
 /* --- Prototypes --- */
@@ -34,13 +33,13 @@ typedef struct ThreadParams {
 /* Initializes data and utilities used in thread params */
 void initializeData(ThreadParams *params);
 
-/* This thread reads data from data.txt and writes each line to a pipe */
+/* This thread reads data from src.txt and writes each line to a pipe */
 void* ThreadA(void *params);
 
-/* This thread reads data from pipe used in ThreadA and writes it to a shared variable */
+/* This thread reads data from pipe used in ThreadA and writes it to a shared buffer */
 void* ThreadB(void *params);
 
-/* This thread reads from shared variable and outputs non-header text to src.txt */
+/* This thread reads from shared buffer and outputs non-header text to data.txt */
 void* ThreadC(void *params);
 
 /* --- Main Code --- */
